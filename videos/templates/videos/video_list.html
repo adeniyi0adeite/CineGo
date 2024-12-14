@@ -1,0 +1,22 @@
+<!-- videos/templates/videos/video_list.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>All Videos</h1>
+
+    <div class="row">
+        {% for video in videos %}
+            <div class="col-md-4 mb-4">
+                <h2>{{ video.title }}</h2>
+                <video width="320" height="180" controls>
+                    <source src="{{ video.video_file.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <p>Uploaded by: {{ video.user.username }} on {{ video.upload_time }}</p>
+                <p><a href="{% url 'video_access' video.generate_link %}">Watch Full Video</a></p>
+            </div>
+        {% empty %}
+            <p>No videos available.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

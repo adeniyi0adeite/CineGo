@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h1>Upload Your Video</h1>
+
+<div class="container">
+    <form id="videoUploadForm" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="title" class="form-label">Video Title</label>
+            <input type="text" class="form-control" id="title" name="title" placeholder="Enter video title">
+        </div>
+        <div class="mb-3">
+            <label for="video_file" class="form-label">Select Video</label>
+            <input type="file" class="form-control" id="video_file" name="video_file">
+        </div>
+        <button type="button" id="uploadButton" class="btn btn-primary">Upload</button>
+    </form>
+
+    <div class="mt-3" id="successMessage"></div>
+    <div class="mt-3" id="errorMessage"></div>
+</div>
+
+<!-- Link your JavaScript file here -->
+<script src="{% static 'videos/videos.js' %}"></script>
+{% endblock %}
