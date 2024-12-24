@@ -38,7 +38,7 @@
     </div>
 
     <div class="alert alert-success mt-3 d-none" id="successMessage" role="alert">
-        Subscription successful! Redirecting...
+        Redirecting to payment page...
     </div>
     <div class="alert alert-danger mt-3 d-none" id="errorMessage" role="alert"></div>
 
@@ -46,36 +46,43 @@
         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing your subscription...
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+{% endblock %}
+
+{% block extra_js %}
 
 <script>
-$(document).ready(function () {
-    // Handle subscription button click
-    $('.confirm-subscribe-btn').on('click', function () {
-        var planId = $(this).data('plan-id');
-        $('#loadingSpinner').removeClass('d-none');
-        $('#errorMessage').addClass('d-none');
-
-        $.ajax({
-            url: "{% url 'subscribe_view' plan_id=0 %}".replace('0', planId),
-            type: 'POST',
-            data: {
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
-            },
-            success: function (response) {
-                $('#loadingSpinner').addClass('d-none');
-                if (response.success) {
-                    $('#successMessage').removeClass('d-none');
-                    window.location.href = response.authorization_url; // Redirect to Paystack
-                } else {
-                    $('#errorMessage').removeClass('d-none').text(response.error || 'An error occurred.');
+    $(document).ready(function () {
+        // Handle subscription button click
+        $('.confirm-subscribe-btn').on('click', function () {
+            var planId = $(this).data('plan-id');
+            $('#loadingSpinner').removeClass('d-none');
+            $('#errorMessage').addClass('d-none');
+    
+            $.ajax({
+                url: "{% url 'subscribe_view' plan_id=0 %}".replace('0', planId),
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    $('#loadingSpinner').addClass('d-none');
+                    if (response.success) {
+                        $('#successMessage').removeClass('d-none');
+                        window.location.href = response.authorization_url; // Redirect to Paystack
+                    } else {
+                        $('#errorMessage').removeClass('d-none').text(response.error || 'An error occurred.');
+                    }
+                },
+                error: function () {
+                    $('#loadingSpinner').addClass('d-none');
+                    $('#errorMessage').removeClass('d-none').text('An error occurred. Please try again.');
                 }
-            },
-            error: function () {
-                $('#loadingSpinner').addClass('d-none');
-                $('#errorMessage').removeClass('d-none').text('An error occurred. Please try again.');
-            }
+            });
         });
     });
-});
 </script>
+
 {% endblock %}
