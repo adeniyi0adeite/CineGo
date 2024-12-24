@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -32,10 +32,11 @@ def register(request):
 
         # Log the user in
         auth_login(request, user)
-        return JsonResponse({'success': 'Welcome, you are now registered!', 'redirect': '/home'}, status=200)
+        return JsonResponse({'success': 'Welcome, you are now registered!', 'redirect': '/'}, status=200)
     
     # Render the registration template for GET request
     return render(request, 'users/register.html')
+
 
 
 # Login View
@@ -47,9 +48,15 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             auth_login(request, user)
-            return JsonResponse({'success': 'You have successfully logged in!', 'redirect': '/home'}, status=200)
+            return JsonResponse({'success': 'You have successfully logged in!', 'redirect': '/'}, status=200)
         else:
             return JsonResponse({'error': 'Invalid username or password.'}, status=400)
 
     # Render the login template for GET request
     return render(request, 'users/login.html')
+
+# Logout View
+def logout_view(request):
+    logout(request)
+    return redirect('login')  # Redirect to the login page after logging out
+

@@ -38,8 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'myapp',
     'users',
     'videos',
+    'payment',
 ]
 
 MIDDLEWARE = [
@@ -138,8 +140,24 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100 MB limit (adjust as necessary)
+VIDEO_FREE_TIME_LIMIT = 4
+
+
+
 # URL Shortening library configuration
 HASHIDS_SALT = 'your_secret_salt'
 
 LOGIN_URL = '/users/login/'  # Update with your login view URL
 LOGIN_REDIRECT_URL = '/'  # Redirect after login, change it as per your home URL
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://127.0.0.1:8000',  # Add this for local testing
+]
+
+
+PAYSTACK_CALLBACK_URL = 'http://127.0.0.1:8000/payment/callback/'  # Or your deployed site's URL
+PAYSTACK_PUBLIC_KEY = 'pk_test_e3ecbb5dc1a18dc3f3e24ce9e7582df530f29713'
+PAYSTACK_SECRET_KEY = 'sk_test_0d7f8930343dac6e7b26c4e033c38826ed8252e4'
+
+

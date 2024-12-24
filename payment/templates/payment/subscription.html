@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h4 class="mb-4 text-center">Choose Your Subscription Plan</h4>
+    <div class="row justify-content-center">
+        {% for plan in plans %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">{{ plan.name }}</h4>
+                        <p class="card-text">Price: <strong>{{ plan.price }} NGN/month</strong></p>
+                        <button class="btn btn-primary btn-block" data-plan-id="{{ plan.id }}" data-bs-toggle="modal" data-bs-target="#subscribeModal{{ plan.id }}">Subscribe Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscription Modal -->
+            <div class="modal fade" id="subscribeModal{{ plan.id }}" tabindex="-1" aria-labelledby="subscribeModalLabel{{ plan.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="subscribeModalLabel{{ plan.id }}">Confirm Subscription</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>You're about to subscribe to the <strong>{{ plan.name }}</strong> plan for <strong>{{ plan.price }} NGN/month</strong>.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary confirm-subscribe-btn" data-plan-id="{{ plan.id }}">Confirm Subscription</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="alert alert-success mt-3 d-none" id="successMessage" role="alert">
+        Subscription successful! Redirecting...
+    </div>
+    <div class="alert alert-danger mt-3 d-none" id="errorMessage" role="alert"></div>
+
+    <div id="loadingSpinner" class="text-center d-none mt-3">
+        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing your subscription...
+    </div>
+</div>
+
+<script>
+$(document).ready(function () {
+    // Handle subscription button click
+    $('.confirm-subscribe-btn').on('click', function () {
+        var planId = $(this).data('plan-id');
+        $('#loadingSpinner').removeClass('d-none');
+        $('#errorMessage').addClass('d-none');
+
+        $.ajax({
+            url: "{% url 'subscribe_view' plan_id=0 %}".replace('0', planId),
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (response) {
+                $('#loadingSpinner').addClass('d-none');
+                if (response.success) {
+                    $('#successMessage').removeClass('d-none');
+                    window.location.href = response.authorization_url; // Redirect to Paystack
+                } else {
+                    $('#errorMessage').removeClass('d-none').text(response.error || 'An error occurred.');
+                }
+            },
+            error: function () {
+                $('#loadingSpinner').addClass('d-none');
+                $('#errorMessage').removeClass('d-none').text('An error occurred. Please try again.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('upload/', views.video_upload, name='video_upload'),  # Video upload URL
-    path('all/', views.video_list, name='video_list'),  # List all videos URL
+    path('upload/', views.video_upload, name='video_upload'),
+    path('list/', views.video_list, name='video_list'),
+    path('stream/<int:video_id>/', views.video_stream, name='video_stream'),  # Video streaming URL
 ]

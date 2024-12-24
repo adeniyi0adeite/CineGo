@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Welcome to CineGo!</h1>
+        <p class="lead">Your one-stop platform for enjoying cinema at your fingertips.</p>
+        
+        <!-- Navigation Buttons -->
+        <div class="mt-4">
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4">Login</a>
+            <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-lg px-4">Sign Up</a>
+        </div>
+    </div>
+
+    <!-- Showcase Section -->
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <img src="{% static 'cinego/images/movies.png' %}" alt="Movies" class="img-fluid rounded shadow-lg">
+        </div>
+        <div class="col-md-6 d-flex flex-column justify-content-center">
+            <h2>Explore the Latest Movies</h2>
+            <p>Discover an extensive collection of movies and enjoy the latest cinema releases from the comfort of your home. CineGo brings the best of cinema to you.</p>
+            <a href="{% url 'video_list' %}" class="btn btn-success btn-lg">Browse Movies</a>
+        </div>
+    </div>
+</div>
+<!-- Link your JavaScript file here -->
+<script src="{% static 'cinego/js/home.js' %}"></script>
+{% endblock %}

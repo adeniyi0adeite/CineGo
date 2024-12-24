@@ -1,27 +1,39 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block content %}
-<h1>Upload Your Video</h1>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Upload Your Video</h2>
 
-<div class="container">
-    <form id="videoUploadForm" enctype="multipart/form-data">
+    <div class="mt-3 text-success" id="successMessage"></div>
+    <div class="mt-3 text-danger" id="errorMessage"></div>
+    <br>
+    <form id="videoUploadForm" enctype="multipart/form-data" action="/videos/upload/" method="post">
         <div class="mb-3">
             <label for="title" class="form-label">Video Title</label>
-            <input type="text" class="form-control" id="title" name="title" placeholder="Enter video title">
+            <input type="text" class="form-control" id="title" name="title" placeholder="Enter video title" required>
+            <div class="invalid-feedback">Please enter a video title.</div>
         </div>
         <div class="mb-3">
             <label for="video_file" class="form-label">Select Video</label>
-            <input type="file" class="form-control" id="video_file" name="video_file">
+            <input type="file" class="form-control" id="video_file" name="video_file" accept="video/mp4" required>
+            <div class="invalid-feedback">Please select a video file.</div>
         </div>
-        <button type="button" id="uploadButton" class="btn btn-primary">Upload</button>
+        <div class="mb-3">
+            <label for="price" class="form-label">Video Price (NGN)</label>
+            <input type="number" class="form-control" id="price" name="price" step="0.01" min="0" placeholder="Enter video price" required>
+            <div class="invalid-feedback">Please enter a valid price.</div>
+        </div>
+        <button type="button" id="uploadButton" class="btn btn-primary w-100">Upload</button>
     </form>
 
-    <div class="mt-3" id="successMessage"></div>
-    <div class="mt-3" id="errorMessage"></div>
+    <!-- Progress bar -->
+    <div class="progress mt-3" style="display: none;">
+        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+    </div>
+
+    
 </div>
 
-<!-- Link your JavaScript file here -->
 <script src="{% static 'videos/videos.js' %}"></script>
 {% endblock %}

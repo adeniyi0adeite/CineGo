@@ -1,22 +1,35 @@
-<!-- videos/templates/videos/video_list.html -->
 {% extends 'base.html' %}
-
 {% block content %}
-    <h1>All Videos</h1>
 
-    <div class="row">
-        {% for video in videos %}
-            <div class="col-md-4 mb-4">
-                <h2>{{ video.title }}</h2>
-                <video width="320" height="180" controls>
-                    <source src="{{ video.video_file.url }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-                <p>Uploaded by: {{ video.user.username }} on {{ video.upload_time }}</p>
-                <p><a href="{% url 'video_access' video.generate_link %}">Watch Full Video</a></p>
+<div class="container mt-5">
+    <h1 class="text-center">Available Movies</h1>
+
+    <div class="row mt-4">
+        {% for video in all_videos %}
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ video.title }}</h5>
+                    <p class="card-text">Released: {{ video.release_date }}</p>
+                    <p>Duration: {{ video.duration|floatformat:2 }} minutes</p>
+                    {% if has_active_subscription %}
+                    <a href="{% url 'video_stream' video.id %}" class="btn btn-success w-100">WATCH NOW</a>
+                    {% else %}
+                        {% if video.id in pay_per_watch_videos %}
+                        <a href="{% url 'video_stream' video.id %}" class="btn btn-success w-100">WATCH NOW</a>
+                        {% else %}
+                        <a href="{% url 'video_stream' video.id %}" class="btn btn-warning w-100">WATCH PREVIEW</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
             </div>
-        {% empty %}
-            <p>No videos available.</p>
+        </div>
         {% endfor %}
     </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'active_subscription' %}" class="btn btn-warning">Subscribe Now for Full Access to All Movies</a>
+    </div>
+</div>
+
 {% endblock %}

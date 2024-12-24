@@ -1,0 +1,48 @@
+<!-- templates/payment/payperwatch.html -->
+
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+<h1>Make Payment</h1>
+<p>You need to pay to watch the full video.</p>
+
+<!-- Payment button -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#paymentModal">
+    Pay Now
+</button>
+
+<div class="mt-3" id="successMessage"></div>
+<div class="mt-3" id="errorMessage"></div>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Confirm Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to proceed with the payment?</p>
+                <p><strong>Video ID:</strong> {{ video.id }}</p>
+                <p><strong>User Email:</strong> {{ video.user.email }}</p>
+                <p><strong>Amount:</strong> NGN {{ video.price }}</p>
+                <p><strong>Currency:</strong> NGN</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <!-- Submit payment form via POST -->
+                <form action="{% url 'payperwatch' video_id=video.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Confirm and Pay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- <script src="{% static 'videos/videos.js' %}"></script> -->
+
+{% endblock %}

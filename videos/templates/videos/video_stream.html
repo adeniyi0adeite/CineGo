@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Back Button -->
+    <div class="text-center">
+        <a href="{% url 'video_list' %}" class="btn btn-primary mb-4">Back to Movie List</a>
+    </div>
+
+    <!-- Video Title and Details -->
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2 text-center">
+            <h2 class="text-light mb-3">{{ video.title }}</h2>
+            <p class="text-muted">Uploaded by: <span class="text-info">{{ video.user.username }}</span> on {{ video.upload_time|date:"F j, Y, g:i a" }}</p>
+        </div>
+    </div>
+
+    <!-- Video Player -->
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+            <div class="video-container shadow-lg rounded">
+                <video id="video-player" class="w-100 rounded" controls>
+                    <source src="{{ video.video_file.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Timer for free watch time -->
+    {% if free_watch_time > 0 %}
+    <div class="row mt-3">
+        <div class="col-lg-8 offset-lg-2 text-center">
+            <p class="text-light">
+                You have <span id="remainingTime" class="fw-bold">{{ free_watch_time }}</span> seconds of free watch time remaining.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Conditionally show the pay button -->
+    {% if show_pay_button %}
+    <div class="row mt-3 text-center">
+        <div class="col-lg-8 offset-lg-2">
+            <button class="btn btn-warning pay-watch-btn" data-video-id="{{ video.id }}">Pay to Watch Full Video</button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add script to handle countdown timer and payment -->
+<script src="{% static 'cinego/js/video_player.js' %}"></script>
+
+<style>
+    .video-item {
+        position: relative;
+        transition: transform 0.3s ease;
+    }
+    .video-item:hover {
+        transform: scale(1.05);
+    }
+    .video-item img {
+        filter: brightness(0.7);
+        transition: filter 0.3s ease;
+    }
+    .video-item:hover img {
+        filter: brightness(1);
+    }
+    .video-title {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        color: white;
+        font-size: 1.5rem;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+</style>
+
+{% endblock %}
