@@ -1,5 +1,3 @@
-// users/static/users/users.js
-
 $(document).ready(function () {
     // General AJAX function
     function handleFormSubmit(formId, redirectUrl) {
@@ -11,6 +9,9 @@ $(document).ready(function () {
             type: 'POST',
             url: url,  // Form action URL (it can be login or registration URL)
             data: formData,
+            headers: {
+                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
             success: function (response) {
                 if (response.success) {
                     $('#successMessage').html(`<div class="alert alert-success">${response.success}</div>`);
