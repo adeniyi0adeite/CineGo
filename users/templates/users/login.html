@@ -1,6 +1,4 @@
-<!-- users/templates/users/login.html -->
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block content %}
@@ -8,8 +6,8 @@
     <h2>Login</h2>
     
     <!-- Error Message Display -->
-    <div class="mt-3" id="successMessage"></div>
-    <div class="mt-3" id="errorMessage"></div>
+    <div class="mt-3" class="messages" id="successMessage"></div>
+    <div class="mt-3" class="messages" id="errorMessage"></div>
 
     <form id="login-form" method="POST" action="{% url 'login' %}">
         {% csrf_token %}
@@ -29,5 +27,4 @@
 
 <!-- Link your JavaScript file here -->
 <script src="{% static 'users/users.js' %}?v={{ timestamp }}"></script>
-
 {% endblock %}

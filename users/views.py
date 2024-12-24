@@ -32,12 +32,12 @@ def register(request):
 
         # Log the user in
         auth_login(request, user)
-        
-        # Return success response with redirect URL
         return JsonResponse({'success': 'Welcome, you are now registered!', 'redirect': '/'}, status=200)
     
     # Render the registration template for GET request
     return render(request, 'users/register.html')
+
+
 
 # Login View
 def login_view(request):
@@ -59,3 +59,4 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')  # Redirect to the login page after logging out
+
