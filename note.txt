@@ -71,3 +71,28 @@ The __str__() method clearly shows the username, plan, and price for each subscr
 Benefits:
 Flexibility: You can now add or modify subscription plans, their prices, and durations without changing your code.
 Reusability: This design allows you to use SubscriptionPlan in other parts of your app if necessary (e.g., for subscription listings).
+
+
+
+
+
+
+Hi Mr. Akinmolayan!
+
+Inspired by your thoughts on piracy and movie access, I built a prototype called CineGo. 
+It allows:
+Pay-as-you-watch after a few seconds
+Subscription plans for full access
+You can check it out here: https://dacodar.pythonanywhere.com/
+User 1 (Has active subscription):
+Username: john_doe
+Password: john
+
+User 2 (Has NO active subscription -  can only stream for 4 seconds):
+Username: baba_dudu
+Password: dudu
+
+I’d love to hear your thoughts and explore ways we can collaborate!
+
+Best,
+[Your Name]

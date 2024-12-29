@@ -114,7 +114,7 @@ def video_stream(request, video_id):
     video = get_object_or_404(Video, id=video_id)
     user_profile = request.user.userprofile
 
-    # Check for active subscription using the method
+    # Check for active subscription
     active_subscription = user_profile.get_active_subscription()
     has_active_subscription = active_subscription is not None
 
@@ -122,17 +122,17 @@ def video_stream(request, video_id):
     video_access = VideoAccess.objects.filter(user=user_profile, video=video).exists()
 
     # Default free watch time limit (in seconds)
-    free_watch_time = 4  # Default 4 seconds of free watch time for non-paid users
+    free_watch_time = video.free_watch_time.total_seconds()
 
-    # If the user has either an active subscription or pay-per-watch access, allow full watch time
+    # If the user has an active subscription or pay-per-watch access, set free watch time to 0 (unlimited access)
     if has_active_subscription or video_access:
-        free_watch_time = 0  # No limit on watch time for users with subscription or pay-per-watch access
+        free_watch_time = 0
 
     # Determine if the pay button should be shown
     show_pay_button = not (has_active_subscription or video_access)
 
     return render(request, 'videos/video_stream.html', {
         'video': video,
-        'free_watch_time': free_watch_time,
-        'show_pay_button': show_pay_button,  # Pass this flag to the template
+        'free_watch_time': free_watch_time,  # Pass this as a number (seconds)
+        'show_pay_button': show_pay_button,  # Flag to show/hide the pay button
     })

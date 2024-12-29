@@ -9,9 +9,10 @@ class Video(models.Model):
     video_file = models.FileField(upload_to='videos_uploads/')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     upload_time = models.DateTimeField(auto_now_add=True)
-    release_date = models.DateField(default=timezone.now)  # New field for release date
-    duration = models.DurationField(default=timedelta(minutes=0))  # New field for video duration
+    release_date = models.DateField(default=timezone.now)  # Field for release date
+    duration = models.DurationField(default=timedelta(minutes=0))  # Field for video duration
     user = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE)
+    free_watch_time = models.DurationField(default=timedelta(seconds=4))  # New field for free watch time
 
     def generate_link(self):
         """Generate a unique, time-sensitive link for the video."""

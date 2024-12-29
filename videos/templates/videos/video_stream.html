@@ -3,16 +3,13 @@
 
 {% block content %}
 <div class="container mt-5">
-    <!-- Back Button -->
-    <div class="text-center">
-        <a href="{% url 'video_list' %}" class="btn btn-primary mb-4">Back to Movie List</a>
-    </div>
-
     <!-- Video Title and Details -->
     <div class="row">
         <div class="col-lg-8 offset-lg-2 text-center">
             <h2 class="text-light mb-3">{{ video.title }}</h2>
-            <p class="text-muted">Uploaded by: <span class="text-info">{{ video.user.username }}</span> on {{ video.upload_time|date:"F j, Y, g:i a" }}</p>
+            <p class="text-light">
+                Uploaded by: <span class="text-info">{{ video.user.username }}</span> on {{ video.upload_time|date:"F j, Y, g:i a" }}
+            </p>
         </div>
     </div>
 
@@ -43,38 +40,203 @@
     {% if show_pay_button %}
     <div class="row mt-3 text-center">
         <div class="col-lg-8 offset-lg-2">
-            <button class="btn btn-warning pay-watch-btn" data-video-id="{{ video.id }}">Pay to Watch Full Video</button>
+            <button class="btn btn-warning pay-watch-btn" data-video-id="{{ video.id }}">Pay now to have full access to this movie</button>
         </div>
     </div>
     {% endif %}
+
+    <!-- Modal for payment after free watch time ends or pay button click -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="paymentModalLabel">Time's up!</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Your free watch time has ended or you clicked Pay. Please 
+                        <form id="pay-per-watch-form" action="{% url 'pay_per_watch_view' video_id=video.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-warning">Click here to pay and continue watching.</button>
+                        </form>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
 </div>
 
-<!-- Add script to handle countdown timer and payment -->
-<script src="{% static 'cinego/js/video_player.js' %}"></script>
+
 
 <style>
-    .video-item {
-        position: relative;
-        transition: transform 0.3s ease;
+    body {
+        background-color: #121212; /* Dark background */
+        color: #e0e0e0; /* Light text for contrast */
+        font-family: 'Poppins', sans-serif;
     }
-    .video-item:hover {
-        transform: scale(1.05);
+
+    .navbar {
+        background-color: #1f1f1f; /* Dark navbar */
     }
-    .video-item img {
-        filter: brightness(0.7);
-        transition: filter 0.3s ease;
+
+    .navbar a {
+        color: #e0e0e0 !important; /* Light navbar text */
     }
-    .video-item:hover img {
-        filter: brightness(1);
+
+    .footer {
+        background-color: #1f1f1f; /* Dark footer */
+        color: #e0e0e0;
+        padding: 20px 0;
+        text-align: center;
     }
-    .video-title {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        color: white;
+
+    .navbar-brand {
+        font-weight: bold;
         font-size: 1.5rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    }
+
+    .btn-warning {
+        background-color: #f39c12;
+        border: none;
+        color: #fff;
+    }
+
+    .btn-warning:hover {
+        background-color: #e67e22;
+    }
+
+    .video-container {
+        background-color: #000; /* Dark background for video container */
+        border-radius: 10px;
+    }
+
+    .text-light {
+        color: #e0e0e0 !important; /* Light text */
+    }
+
+    .text-muted {
+        color: #b0b0b0; /* Slightly muted text */
+    }
+
+    .modal-content {
+        background-color: #212121; /* Dark background for modal */
+        color: #e0e0e0; /* Light text inside modal */
+    }
+
+    .modal-header {
+        background-color: #333; /* Dark header for modal */
+    }
+
+    .modal-title {
+        color: #f39c12; /* Cinematic gold color for modal title */
+    }
+
+    .btn-close-white {
+        filter: invert(1); /* White close button for dark theme */
+    }
+
+    .pay-watch-btn {
+        background-color: #e67e22;
+        color: white;
+        font-weight: bold;
+    }
+
+    .pay-watch-btn:hover {
+        background-color: #d35400;
+    }
+
+    /* Adjust the timer text to be more prominent */
+    #remainingTime {
+        color: #e67e22; /* Highlight remaining time in gold */
     }
 </style>
 
 {% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const videoPlayer = document.getElementById("video-player");
+    const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+    let freeWatchTime = {{ free_watch_time }};
+    
+    if (freeWatchTime <= 0) return;
+
+    let currentWatchTime = 0;
+
+    // Event listener for video playback updates
+    videoPlayer.addEventListener('timeupdate', function() {
+        currentWatchTime = videoPlayer.currentTime;
+        let remainingTime = freeWatchTime - currentWatchTime;
+
+        // Update the remaining time with a cinematic countdown effect
+        const remainingTimeElement = document.getElementById('remainingTime');
+        remainingTimeElement.innerText = Math.max(0, Math.floor(remainingTime));
+        
+        // Change the text color as time runs out
+        if (remainingTime <= 5) {
+            remainingTimeElement.style.color = '#e67e22'; // Cinematic gold when time is almost up
+        }
+
+        if (remainingTime <= 0) {
+            videoPlayer.pause();
+            paymentModal.show();
+        }
+    });
+});
+
+$(document).ready(function () {
+    // Pay button click handler
+    $('.pay-watch-btn').on('click', function () {
+        var videoId = $(this).data('video-id');
+
+        $.ajax({
+            url: "{% url 'pay_per_watch_view' video_id=0 %}".replace('0', videoId),
+            type: 'POST',
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.success) {
+                    // Redirect the user to Paystack's authorization URL
+                    window.location.href = response.authorization_url;
+                } else {
+                    alert(response.error || 'An error occurred.');
+                }
+            },
+            error: function () {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+
+    // Payment form submission handler (after free watch time ends)
+    $('#pay-per-watch-form').on('submit', function (e) {
+        e.preventDefault();  // Prevent the default form submission
+        var form = $(this);
+
+        $.ajax({
+            url: form.attr('action'),  // URL of the Paystack view
+            type: 'POST',
+            data: form.serialize(),  // Serialize form data including csrf_token
+            success: function (response) {
+                if (response.success) {
+                    // Redirect the user to Paystack's authorization URL
+                    window.location.href = response.authorization_url;
+                } else {
+                    alert(response.error || 'An error occurred while processing the payment.');
+                }
+            },
+            error: function () {
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

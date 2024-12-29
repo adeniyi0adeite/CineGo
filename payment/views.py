@@ -85,8 +85,6 @@ def subscribe_view(request, plan_id):
 
 
 
-
-@csrf_exempt
 @login_required
 def pay_per_watch_view(request, video_id):
     """Handle pay-per-watch payments after free watch time."""
@@ -109,7 +107,7 @@ def pay_per_watch_view(request, video_id):
     }
     data = {
         "email": request.user.email,
-        "amount": int(video.price * 100),
+        "amount": int(video.price * 100),  # Convert price to kobo
         "reference": payment.reference,
         "callback_url": f"{settings.PAYSTACK_CALLBACK_URL}?video_id={video.id}",
     }
@@ -118,13 +116,10 @@ def pay_per_watch_view(request, video_id):
     result = response.json()
     
     if result.get("status"):
-        payment.status = 'completed'
-        payment.save()
+        # Save the authorization URL to redirect the user
         return JsonResponse({"success": True, "authorization_url": result['data']['authorization_url']})
     else:
         return JsonResponse({"success": False, "error": result.get('message', 'Error occurred while initializing payment')})
-
-
 
 
 
