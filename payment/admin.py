@@ -1,6 +1,12 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from .models import Payment, SubscriptionPlan, SubscriptionPayment, VideoAccessPayment
+from django.utils.html import format_html
+
+class SubscriptionPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'duration', 'resolution', 'device', 'support')
+    search_fields = ('name', 'device', 'support')
+    list_filter = ('name', 'resolution')
+    ordering = ('-price',)
 
 class PaymentAdmin(admin.ModelAdmin):
     list_display = ('user', 'amount', 'reference', 'status', 'payment_type', 'created_at', 'verify_payment_action')
@@ -20,6 +26,6 @@ class PaymentAdmin(admin.ModelAdmin):
     verify_payment_action.short_description = 'Verify Payment'
 
 admin.site.register(Payment, PaymentAdmin)
-admin.site.register(SubscriptionPlan)
+admin.site.register(SubscriptionPlan, SubscriptionPlanAdmin)
 admin.site.register(SubscriptionPayment)
 admin.site.register(VideoAccessPayment)

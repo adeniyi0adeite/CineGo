@@ -1,56 +1,74 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">Your Subscription</h2>
 
-    <!-- Check for active subscription -->
-    {% if active_subscription %}
-        <div class="alert alert-info text-center">
-            <h4>Current Subscription</h4>
-            <p><strong>Plan:</strong> {{ active_subscription.plan.name|capfirst }}</p>
-            <p><strong>Price:</strong> {{ active_subscription.plan.price }} NGN/month</p>
-            <p><strong>Expiry Date:</strong> {{ active_subscription.end_date|date:"F d, Y" }}</p>
-        </div>
+    <!-- page title -->
+    <section class="section section--first section--bg" data-bg="img/bg/section__bg.jpg">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section__wrap">
+                        <!-- section title -->
+                        <h1 class="section__title section__title--head">Active Subscriptions</h1>
+                        <!-- end section title -->
 
-        <!-- Button to upgrade subscription -->
-        <div class="text-center mt-4">
-            <a href="{% url 'subscription' %}" class="btn btn-warning btn-lg">Upgrade Subscription</a>
+                        <!-- breadcrumbs -->
+                        <ul class="breadcrumbs">
+                            <li class="breadcrumbs__item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumbs__item breadcrumbs__item--active">Subscriptions</li>
+                        </ul>
+                        <!-- end breadcrumbs -->
+                    </div>
+                </div>
+            </div>
         </div>
-    {% else %}
-        <!-- No active subscription message -->
-        <div class="alert alert-danger text-center">
-            <h4>No Active Subscription</h4>
-            <p>You do not have an active subscription. Subscribe to a plan to access our content.</p>
-        </div>
+    </section>
+    <!-- end page title -->
 
-        <!-- Button to subscribe -->
-        <div class="text-center mt-4">
-            <a href="{% url 'subscription' %}" class="btn btn-primary btn-lg">Subscribe Now</a>
-        </div>
-    {% endif %}
 
-    <br>
+    
+    <div class="container mt-5">
 
-    <h2 class="mb-4 text-center">Your Videos</h2>
+        <!-- Check for active subscription -->
+        {% if active_subscription %}
+            <div class="alert alert-info text-center">
+                <h4>Current Subscription</h4>
+                <p><strong>Plan:</strong> {{ active_subscription.plan.name|capfirst }}</p>
+                <p><strong>Price:</strong> {{ active_subscription.plan.price }} NGN/month</p>
+                <p><strong>Expiry Date:</strong> {{ active_subscription.end_date|date:"F d, Y" }}</p>
+            </div>
 
-    <!-- Check for Video Access -->
-    {% if videos %}
-        <div class="alert alert-info">
-            <h4>Videos You Have Access To:</h4>
-            <ul class="list-unstyled">
-                {% for video in videos %}
-                    <li>
-                        <a href="{{ video.get_absolute_url }}" class="text-decoration-none">{{ video.title }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% else %}
-        <div class="alert alert-danger">
-            <p>You do not have access to any videos at the moment.</p>
-        </div>
-    {% endif %}
-</div>
+            <!-- Button to upgrade subscription -->
+            <div class="row">
+                <div class="col">
+                    <a href="{% url 'subscription' %}" class="plan__btn">
+                        <span>Upgrade Subscription</span>
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <!-- No active subscription message -->
+            <div class="alert alert-danger text-center">
+                <h4>No Active Subscription</h4>
+                <p>You do not have an active subscription. Subscribe to a plan to access our content.</p>
+            </div>
+
+            <!-- Button to subscribe -->
+            <div class="row">
+                <div class="col">
+                  <a href="{% url 'subscription' %}" class="plan__btn">
+                    <span>Subscribe now</span>
+                  </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <br>
+
+    </div>
+
+
+
+	
 {% endblock %}

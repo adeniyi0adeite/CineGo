@@ -10,8 +10,15 @@ from django.utils import timezone
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.core.files.uploadhandler import TemporaryFileUploadHandler
-from .models import Video, VideoAccess
+from .models import Video, VideoAccess, Category
+from users.models import Actor, Director
+from django.core.files.storage import FileSystemStorage
+
+
+
 import os
+from django.contrib import messages
+
 
 
 @login_required
@@ -40,72 +47,104 @@ def video_list(request):
 
 
 
+@login_required
+def video_categories(request):
+    # Fetch all categories
+    categories = Category.objects.all()
 
-ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/mkv', 'video/webm']
+    # Get videos in each category
+    category_videos = {}
+    for category in categories:
+        category_videos[category] = Video.objects.filter(categories=category)
+
+    return render(request, 'videos/video_categories.html', {
+        'category_videos': category_videos,
+    })
 
 
 @login_required
-@csrf_exempt
+def video(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
+    user_profile = request.user.userprofile
+
+    # Check for active subscription
+    active_subscription = user_profile.get_active_subscription()
+    has_active_subscription = active_subscription is not None
+
+    # Check if the user has pay-per-watch access to this video
+    video_access = VideoAccess.objects.filter(user=user_profile, video=video).exists()
+
+    # Default free watch time limit (in seconds)
+    free_watch_time = 4  # Set to 4 seconds as default
+
+    # If the user has an active subscription or pay-per-watch access, set free watch time to 0 (unlimited access)
+    if has_active_subscription or video_access:
+        free_watch_time = 0
+
+    # Determine if the pay button should be shown
+    show_pay_button = not (has_active_subscription or video_access)
+
+    # Get the actors and director
+    actors = video.actors.all()
+    director = video.director
+
+     # Calculate the running time in minutes and cast it to an integer
+    running_time_minutes = int(video.running_time.total_seconds() // 60)  # Remove decimal places
+
+    return render(request, 'videos/video.html', {
+        'video': video,
+        'free_watch_time': free_watch_time,  # Pass this as a number (seconds)
+        'show_pay_button': show_pay_button,  # Flag to show/hide the pay button
+        'actors': actors,                   # Pass the actors to the template
+        'director': director,               # Pass the director to the template
+        'running_time_minutes': running_time_minutes,  # Pass the running time in minutes
+    })
+
+
+
+
+@login_required
 def video_upload(request):
-    if request.method == 'GET':
-        # Render the video upload form
-        return render(request, 'videos/video_upload.html')
+    
+    if request.method == "POST":
+        # Retrieve form data from request.POST
+        title = request.POST.get('title')
+        price = request.POST.get('price')
+        video_file = request.FILES.get('video_file')
 
-    if request.method == 'POST':
+        # Ensure all required fields are filled
+        if not title or not price or not video_file:
+            messages.error(request, "Please fill in all required fields.")
+            return redirect('video_upload')  # URL for the video upload form page
+
         try:
-            # Fetch title, video file, and price from the POST request
-            title = request.POST.get('title')
-            video_file = request.FILES.get('video_file')
-            price = request.POST.get('price')
-
-            # Check if title, video file, or price is missing
-            if not title or not video_file or not price:
-                raise ValidationError('Please provide a title, a video file, and a price.')
-
-            # Convert price to a Decimal
-            price = float(price)  # Ensure the price is a float
-
-            # Validate the video file type
-            if video_file.content_type not in ALLOWED_VIDEO_TYPES:
-                raise ValidationError('Invalid file type. Please upload MP4, MKV, or WEBM videos.')
-
-            # Check if the file exceeds the size limit
-            max_upload_size = settings.DATA_UPLOAD_MAX_MEMORY_SIZE / (1024 * 1024)  # Convert to MB
-            if video_file.size > settings.DATA_UPLOAD_MAX_MEMORY_SIZE:
-                raise ValidationError(f'File too large. Maximum allowed size is {max_upload_size} MB.')
-
-            # Fetch user profile
-            user_profile = request.user.userprofile
-
-            # Check if the video with the same title already exists for the user
-            existing_video = Video.objects.filter(title=title, user=user_profile).first()
-
-            if existing_video:
-                return JsonResponse({'error': 'A video with this title already exists.'}, status=400)
-
-            # Create and save the video instance with price
-            video = Video.objects.create(
+            # Create a new Video instance and save it
+            video = Video(
                 title=title,
+                price=price,
                 video_file=video_file,
-                price=price,  # Assign the price here
-                user=user_profile
+                upload_time=timezone.now()
             )
 
-            # Generate a unique link for the video
-            video_link = video.generate_link()
+            # Optionally, you can add default or dynamic values for other fields like genre
+            video.genre = 'action'  # Example: Set a default genre
+            video.parental_guidance = 'PG'  # Example: Set default parental guidance
+            video.running_time = timedelta(minutes=90)  # Example: Default running time of 90 minutes
+            video.release_date = timezone.now().date()  # Set release date as current date
 
-            # Return a success response as JSON
-            return JsonResponse({'message': 'Video uploaded successfully!', 'video_link': video_link}, status=200)
+            # Save the new video
+            video.save()
 
-        except ValidationError as ve:
-            # Handle validation errors
-            return JsonResponse({'error': str(ve)}, status=400)
+            # Success message
+            messages.success(request, "Video uploaded successfully!")
+            return redirect('video_list')  # Redirect to the list of videos or another appropriate page
 
         except Exception as e:
-            # Catch any unexpected exceptions
-            return JsonResponse({'error': 'An unexpected error occurred: ' + str(e)}, status=500)
+            messages.error(request, f"An error occurred: {str(e)}")
 
-    return JsonResponse({'error': 'Invalid request method.'}, status=405)
+    # In case of GET or any other method
+    return render(request, 'videos/video_upload.html')  # Replace with your form template URL
+
 
 
 
@@ -121,8 +160,8 @@ def video_stream(request, video_id):
     # Check if the user has pay-per-watch access to this video
     video_access = VideoAccess.objects.filter(user=user_profile, video=video).exists()
 
-    # Default free watch time limit (in seconds)
-    free_watch_time = video.free_watch_time.total_seconds()
+    # Default free watch time limit (in seconds) set to 4 seconds
+    free_watch_time = 4  # Set to 4 seconds as default
 
     # If the user has an active subscription or pay-per-watch access, set free watch time to 0 (unlimited access)
     if has_active_subscription or video_access:

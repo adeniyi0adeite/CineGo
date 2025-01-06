@@ -1,6 +1,13 @@
 from django.shortcuts import render
 
-# Create your views here.
+from videos.models import Video
+
+
+
+def custom_page_not_found_view(request, exception):
+    return render(request, "cinego/404.html", status=404)
 
 def home_view(request):
-    return render(request, 'cinego/home.html')  # Render the home template
+    # Get all video objects
+    videos = Video.objects.all()
+    return render(request, 'cinego/home.html', {'videos': videos})

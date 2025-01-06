@@ -1,35 +1,116 @@
-{% extends 'base.html' %}
+{% extends 'index.html' %}
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2>Login</h2>
-    
-    <!-- Error Message Display -->
-    <div class="mt-3" class="messages" id="successMessage"></div>
-    <div class="mt-3" class="messages" id="errorMessage"></div>
+<div class="sign section--bg" data-bg="img/bg/section__bg.jpg">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <div class="sign__content">
 
-    <form id="login-form" method="POST" action="{% url 'login' %}">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" name="username" id="username" class="form-control">
+          <!-- authorization form -->
+          <form action="/users/login/" method="POST" class="ajax-form sign__form">
+            {% csrf_token %}  <!-- Include CSRF token -->
+
+            <!-- Message div will be inserted here (conditionally) -->
+            <div class="response-message-container" style="display: none;"></div>
+
+            <div class="sign__group">
+              <input type="text" name="username" class="sign__input" placeholder="Username" data-constraints="@Required">
+            </div>
+
+            <div class="sign__group">
+              <input type="password" name="password" class="sign__input" placeholder="Password" data-constraints="@Required">
+            </div>
+
+            <div class="sign__group sign__group--checkbox">
+              <input id="remember" name="remember" type="checkbox" checked="checked">
+              <label for="remember">Remember me</label>
+            </div>
+            
+            <button class="sign__btn" type="submit"><span>Sign in</span></button>
+
+            <span class="sign__text">Don't have an account? <a href="{% url 'register' %}">Sign up!</a></span>
+
+            <span class="sign__text"><a href="forgot.html">Forgot password?</a></span>
+          </form>
+          <!-- end authorization form -->
+
         </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="password" class="form-control">
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
-    
-    <p class="mt-3">Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
+      </div>
+    </div>
+  </div>
 </div>
 
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // Select all forms with class 'ajax-form'
+  const forms = document.querySelectorAll('.ajax-form');
 
-{% endblock %}
-{% block extra_js %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  forms.forEach(form => {
+    form.addEventListener('submit', function (event) {
+      event.preventDefault(); // Prevent the default form submission
 
-<!-- Link your JavaScript file here -->
-<script src="{% static 'users/users.js' %}?v={{ timestamp }}"></script>
+      const formData = new FormData(form);
+      const messageDiv = document.querySelector('.response-message-container'); // Find the message container outside the form
+
+      // If the message div doesn't exist, stop execution
+      if (!messageDiv) return; 
+
+      // Clear previous messages and hide the message container initially
+      messageDiv.innerHTML = '';
+      messageDiv.style.display = 'none';
+      messageDiv.classList.remove('success', 'error', 'loading');
+
+      const xhr = new XMLHttpRequest();
+      xhr.open(form.method, form.action, true);
+
+      // Show loading message
+      messageDiv.innerHTML = 'Submitting...';
+      messageDiv.classList.add('message__text');
+      messageDiv.style.display = 'block'; // Show the message container
+
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          const response = JSON.parse(xhr.responseText);
+
+          // Handle successful response
+          if (response.success) {
+            messageDiv.innerHTML = response.message || 'Success!';
+            messageDiv.classList.add('success');
+            messageDiv.style.display = 'block'; // Ensure the message container is visible
+
+            // If there's a redirect URL, redirect after a short delay
+            if (response.redirect) {
+              setTimeout(function() {
+                window.location.href = response.redirect;
+              }, 2000); // 2-second delay
+            }
+          } else {
+            // Handle error response
+            messageDiv.innerHTML = response.message || 'An error occurred.';
+            messageDiv.classList.add('error');
+            messageDiv.style.display = 'block'; // Ensure the message container is visible
+          }
+        } else {
+          // Handle server errors
+          messageDiv.innerHTML = 'An error occurred. Please try again later.';
+          messageDiv.classList.add('error');
+          messageDiv.style.display = 'block'; // Ensure the message container is visible
+        }
+      };
+
+      xhr.onerror = function () {
+        // Handle network errors
+        messageDiv.innerHTML = 'Network error. Please check your connection.';
+        messageDiv.classList.add('error');
+        messageDiv.style.display = 'block'; // Ensure the message container is visible
+      };
+
+      xhr.send(formData);
+    });
+  });
+});
+</script>
+
 {% endblock %}

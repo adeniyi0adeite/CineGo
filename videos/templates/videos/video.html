@@ -1,9 +1,178 @@
 <!-- videos/templates/videos/video.html -->
-{% extends 'base.html' %}
+{% extends 'index.html' %}
+{% load static %}
+
 {% block content %}
-    <h1>{{ video.title }}</h1>
-    <video width="640" height="360" controls>
-        <source src="{{ video.video_file.url }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+
+    <!-- details -->
+    <section class="section section--details">
+      <!-- details background -->
+      <div class="section__details-bg" data-bg="{{ video.background_image.url }}"></div>
+      <!-- end details background -->
+
+      <!-- details content -->
+      <div class="container">
+        <div class="row">
+            <!-- title -->
+            <div class="col-12">
+                <h1 class="section__title section__title--head">{{ video.title }}</h1>
+            </div>
+            <!-- end title -->
+
+            <!-- content -->
+            <div class="col-12 col-xl-6">
+                <div class="item item--details">
+                    <!-- card cover -->
+                    <div class="item__cover">
+                        <img src="{{ video.artwork.url }}" alt="{{ video.title }} artwork">
+                    </div>
+                    <!-- end card cover -->
+
+                    <!-- card content -->
+                    <div class="item__content">
+                        <div class="item__wrap">
+                            <span class="item__rate">8.4</span>
+
+                            <ul class="item__list">
+                              <li>{{ running_time_minutes }} min</li> <!-- Displaying running time in minutes -->
+                              <li>{{ video.parental_guidance }}</li> <!-- Displaying parental guidance -->
+                            </ul>
+                        </div>
+
+                        <ul class="item__meta">
+                            <li><span>Genre:</span> <a href="#">{{ video.genre }}</a></li>
+                            <li><span>Running time:</span> {{ running_time_minutes }} min</li> <!-- Displaying running time -->
+                            <li><span>Premiere:</span> {{ video.premiere_date }}</li> <!-- Display premiere date -->
+                        </ul>
+
+                        <ul class="item__meta item__meta--second">
+                          <!-- Director -->
+                          <li><span>Director:</span> 
+                              <a href="{% url 'director_profile' director_id=director.id %}">{{ director.full_name }}</a>
+                          </li> <!-- Displaying director's name -->
+                      
+                          <!-- Actors -->
+                          <li><span>Actors:</span>
+                              {% for actor in actors %}
+                                  <a href="{% url 'actor_profile' actor_id=actor.id %}">{{ actor.full_name }}</a>
+                              {% endfor %}
+                          </li> <!-- Displaying actors' names -->
+                        </ul>
+                      
+                    </div>
+
+                    <div class="item__description item__description--details">
+                        <p>{{ video.description }}</p> <!-- Displaying video description -->
+                    </div>
+                    <!-- end card content -->
+                </div>
+            </div>
+            <!-- end content -->
+
+            <!-- player -->
+            <div class="col-12 col-xl-6">
+                <video controls crossorigin playsinline poster="https://cdn.plyr.io/static/demo/View_From_A_Blue_Moon_Trailer-HD.jpg" id="player">
+                    <!-- Video files -->
+                    <source src="{{ video.video_file.url }}" type="video/mp4">
+
+                    <!-- Caption files -->
+                    <track kind="captions" label="English" srclang="en" src="{{ video.video_file.url }}" default>
+                    <track kind="captions" label="Français" srclang="fr" src="{{ video.video_file.url }}">
+                </video>
+            </div>
+            <!-- end player -->
+
+        </div>
+      </div>
+      <!-- end details content -->
+
+    </section>
+    <!-- end details -->
+
+    <!-- Conditionally show the pay button -->
+    {% if show_pay_button %}
+    <div class="row">
+      <div class="col">
+        <a href="{% url 'pay_per_watch_view' video_id=video.id %}" class="plan__btn">
+          <span>Pay now to have full access to this movie</span>
+        </a>
+      </div>
+      <div class="col">
+        <a href="{% url 'active_subscription' %}" class="plan__btn">
+          <span>Subscribe</span>
+        </a>
+      </div>
+    </div>
+    
+    
+    {% endif %}
+
+
+
+    <!-- Modal for payment after free watch time ends or pay button click -->
+    <div class="modal fade" id="plan-modal" tabindex="-1" aria-labelledby="plan-modal" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal__content">
+            <button class="modal__close" type="button" data-bs-dismiss="modal" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.41,12l6.3-6.29a1,1,0,1,0-1.42-1.42L12,10.59,5.71,4.29A1,1,0,0,0,4.29,5.71L10.59,12l-6.3,6.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L12,13.41l6.29,6.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42Z"/></svg></button>
+
+            <form action="{% url 'pay_per_watch_view' video_id=video.id %}" class="modal__form" method="POST">
+              {% csrf_token %}
+              <h4 class="modal__title">Video ended!</h4>
+              <button type="submit" class="sign__btn sign__btn--modal">
+                <span>Click here to pay</span>
+              </button>
+            </form>            
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- end plan modal -->
+
+
+
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const videoPlayer = document.getElementById('player');  // Use videoPlayer, not video
+  const paymentModal = new bootstrap.Modal(document.getElementById('plan-modal'));  // Initialize the modal
+  const freeWatchTime = {{ free_watch_time }};  // Pass free_watch_time from Django
+
+  videoPlayer.addEventListener('timeupdate', function () {
+    // Check if the video has played for the free watch time limit (3 seconds or set time)
+    if (videoPlayer.currentTime >= freeWatchTime && !videoPlayer.paused) {
+      videoPlayer.pause();  // Pause the video after free watch time
+      paymentModal.show();  // Show the modal after free watch time ends
+    }
+  });
+
+  // Handle the payment button click
+  document.querySelector('.sign__btn--modal').addEventListener('click', function () {
+    // Send an AJAX request to initiate payment
+    fetch("{% url 'pay_per_watch_view' video_id=video.id %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+      body: JSON.stringify({})  // Send an empty body for now (optional)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Redirect to Paystack's payment page
+        window.location.href = data.authorization_url;
+      } else {
+        alert('Error: ' + data.error);  // Show error if something goes wrong
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);  // Handle any errors that may occur during the fetch
+    });
+  });
+</script>
 {% endblock %}

@@ -13,15 +13,23 @@ import uuid
 
 # Constants for subscription plans
 PLAN_CHOICES = [
-    ('basic', 'Basic'),
-    ('premium', 'Premium'),
-    ('vip', 'VIP'),
+    ('Basic', 'Basic'),
+    ('Premium', 'Premium'),
+    ('Vip', 'VIP'),
+]
+
+SUPPORT_CHOICES = [
+    ('Limited Support', 'Limited Support'),
+    ('24/7 Support', '24/7 Support'),
 ]
 
 class SubscriptionPlan(models.Model):
     name = models.CharField(max_length=100, choices=PLAN_CHOICES, unique=True)
     price = models.DecimalField(max_digits=6, decimal_places=2, default=1000.00)
     duration = models.IntegerField(default=30, help_text="Duration of the plan in days")
+    resolution = models.CharField(max_length=50, choices=[('HD', 'HD'), ('Full HD', 'Full HD'), ('4K', '4K')], default='HD')
+    device = models.CharField(max_length=100, blank=True, null=True)
+    support = models.CharField(max_length=20, choices=SUPPORT_CHOICES, default='Limited Support')
 
     def __str__(self):
         return f"{self.get_name_display()} - {self.price} NGN"
@@ -68,7 +76,7 @@ class Payment(models.Model):
         ('pay_per_watch', 'Pay Per Watch'),
     ]
 
-    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    user = models.ForeignKey('users.UserProfile', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     reference = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
     status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('completed', 'Completed'), ('failed', 'Failed')], default='pending')
