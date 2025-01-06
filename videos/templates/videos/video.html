@@ -138,16 +138,20 @@
 
 {% block extra_js %}
 <script>
-  const videoPlayer = document.getElementById('player');  // Use videoPlayer, not video
-  const paymentModal = new bootstrap.Modal(document.getElementById('plan-modal'));  // Initialize the modal
-  const freeWatchTime = {{ free_watch_time }};  // Pass free_watch_time from Django
+  const videoPlayer = document.getElementById('player');
+  const paymentModal = new bootstrap.Modal(document.getElementById('plan-modal'));
+  const freeWatchTime = {{ free_watch_time }};  // Get the free watch time value from Django context
 
   videoPlayer.addEventListener('timeupdate', function () {
-    // Check if the video has played for the free watch time limit (3 seconds or set time)
-    if (videoPlayer.currentTime >= freeWatchTime && !videoPlayer.paused) {
-      videoPlayer.pause();  // Pause the video after free watch time
-      paymentModal.show();  // Show the modal after free watch time ends
+    // Check if the user does not have active subscription or pay-per-watch access
+    if (freeWatchTime > 0) {
+      // Check if the video has played for the free watch time limit (and it's not paused)
+      if (videoPlayer.currentTime >= freeWatchTime && !videoPlayer.paused) {
+        videoPlayer.pause();  // Pause the video after free watch time
+        paymentModal.show();  // Show the modal after free watch time ends
+      }
     }
   });
 </script>
 {% endblock %}
+

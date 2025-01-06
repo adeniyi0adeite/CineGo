@@ -174,7 +174,7 @@ def paystack_callback(request):
                     video=video_access_payment.video
                 )
                 
-                return redirect('video_stream', video_id=video_id)  # Redirect to the video stream page
+                return redirect('video', video_id=video_id)  # Redirect to the video stream page
 
 
     return redirect('active_subscription')  # Fallback to active subscription if anything goes wrong
