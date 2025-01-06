@@ -149,30 +149,5 @@
       paymentModal.show();  // Show the modal after free watch time ends
     }
   });
-
-  // Handle the payment button click
-  document.querySelector('.sign__btn--modal').addEventListener('click', function () {
-    // Send an AJAX request to initiate payment
-    fetch("{% url 'pay_per_watch_view' video_id=video.id %}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}',
-      },
-      body: JSON.stringify({})  // Send an empty body for now (optional)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Redirect to Paystack's payment page
-        window.location.href = data.authorization_url;
-      } else {
-        alert('Error: ' + data.error);  // Show error if something goes wrong
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);  // Handle any errors that may occur during the fetch
-    });
-  });
 </script>
 {% endblock %}

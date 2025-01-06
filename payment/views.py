@@ -116,11 +116,11 @@ def pay_per_watch_view(request, video_id):
     result = response.json()
     
     if result.get("status"):
-        # Save the authorization URL to redirect the user
-        return JsonResponse({"success": True, "authorization_url": result['data']['authorization_url']})
+        # Redirect the user to Paystack's authorization URL
+        return redirect(result['data']['authorization_url'])
     else:
-        return JsonResponse({"success": False, "error": result.get('message', 'Error occurred while initializing payment')})
-
+        # Handle error (you may want to display a message or log it)
+        return HttpResponse("Error occurred while initializing payment", status=400)
 
 
 @login_required
